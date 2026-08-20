@@ -71,23 +71,25 @@ local function updatePhoneScale()
 
 	local viewport = camera.ViewportSize
 
-	if viewport.X <= 600 then
-		-- Phone
-		Scale.Scale = math.min(
-			(viewport.X - 20) / 680,
-			(viewport.Y - 40) / 520
-		)
-	else
-		-- PC / Tablet
-		Scale.Scale = 1
-	end
+	local scale = math.min(
+		(viewport.X - 20) / 680,
+		(viewport.Y - 40) / 520
+	)
+
+	scale = math.clamp(scale, 0.45, 1)
+
+	Scale.Scale = scale
+
+	local realW = 680 * scale
+	local realH = 520 * scale
+
+	Window.Position = UDim2.new(
+		0.5,
+		-realW / 2,
+		0.5,
+		-realH / 2
+	)
 end
-
-updatePhoneScale()
-
-workspace.CurrentCamera:GetPropertyChangedSignal(
-	"ViewportSize"
-):Connect(updatePhoneScale)
 
 --========================================================--
 -- TITLE
