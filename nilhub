@@ -32,7 +32,7 @@ local C = {
 }
 
 --========================================================--
--- GUI
+-- GUI - PHONE SIZE
 --========================================================--
 
 local Gui = Instance.new("ScreenGui")
@@ -44,9 +44,8 @@ Gui.Parent = PlayerGui
 local Window = Instance.new("Frame")
 Window.Name = "NILHubWindow"
 
--- Default compact size
-Window.Size = UDim2.fromOffset(430,320)
-Window.Position = UDim2.new(0.5,-235,0.5,-170)
+Window.Size = UDim2.fromOffset(680,520)
+Window.Position = UDim2.new(0.5,-340,0.5,-260)
 
 Window.BackgroundColor3 = C.Background
 Window.BorderSizePixel = 0
@@ -60,62 +59,36 @@ outline.Thickness = 2
 outline.Parent = Window
 
 --========================================================--
--- MOBILE SIZE + POSITION
+-- PHONE AUTO SCALE
 --========================================================--
 
-local function updateMobileWindow()
+local Scale = Instance.new("UIScale")
+Scale.Parent = Window
+
+local function updatePhoneScale()
 	local camera = workspace.CurrentCamera
 	if not camera then return end
 
 	local viewport = camera.ViewportSize
-	local screenW = viewport.X
-	local screenH = viewport.Y
 
-	-- Mobile
-	if screenW <= 700 then
-
-		local w = math.min(screenW - 20, 680)
-		local h = math.min(screenH - 30, 520)
-
-		-- Never make it smaller than the UI content
-		w = math.max(w, 665)
-		h = math.max(h, 510)
-
-		Window.Size = UDim2.fromOffset(w,h)
-
-		Window.Position = UDim2.new(
-			0.5,
-			-w/2,
-			0.5,
-			-h/2
+	if viewport.X <= 600 then
+		-- Phone
+		Scale.Scale = math.min(
+			(viewport.X - 20) / 680,
+			(viewport.Y - 40) / 520
 		)
-
-	-- PC / larger screen
 	else
-
-		local w = 680
-		local h = 520
-
-		Window.Size = UDim2.fromOffset(w,h)
-
-		Window.Position = UDim2.new(
-			0.5,
-			-w/2,
-			0.5,
-			-h/2
-		)
+		-- PC / Tablet
+		Scale.Scale = 1
 	end
 end
 
-updateMobileWindow()
+updatePhoneScale()
 
-local camera = workspace.CurrentCamera
-
-if camera then
-	camera:GetPropertyChangedSignal("ViewportSize"):Connect(
-		updateMobileWindow
-	)
-end
+workspace.CurrentCamera:GetPropertyChangedSignal(
+	"ViewportSize"
+):Connect(updatePhoneScale)
+-
 --========================================================--
 -- TITLE
 --========================================================--
