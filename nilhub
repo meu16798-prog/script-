@@ -43,11 +43,20 @@ Gui.Parent = PlayerGui
 
 local Window = Instance.new("Frame")
 Window.Name = "NILHubWindow"
-Window.Size = UDim2.fromOffset(500,360)
-Window.Position = UDim2.new(.5,-350,.5,-280)
+
+-- Default compact size
+Window.Size = UDim2.fromOffset(680,520)
+
 Window.BackgroundColor3 = C.Background
 Window.BorderSizePixel = 0
 Window.Parent = Gui
+
+Instance.new("UICorner",Window).CornerRadius = UDim.new(0,14)
+
+local outline = Instance.new("UIStroke")
+outline.Color = C.Stroke
+outline.Thickness = 2
+outline.Parent = Window
 
 --========================================================--
 -- MOBILE SIZE + POSITION
@@ -58,37 +67,54 @@ local function updateMobileWindow()
 	if not camera then return end
 
 	local viewport = camera.ViewportSize
+	local screenW = viewport.X
+	local screenH = viewport.Y
 
-	local w = math.floor(viewport.X * 0.88)
-	local h = math.floor(viewport.Y * 0.72)
+	-- Mobile
+	if screenW <= 700 then
 
-	w = math.clamp(w, 420, 700)
-	h = math.clamp(h, 360, 560)
+		local w = math.min(screenW - 20, 680)
+		local h = math.min(screenH - 30, 520)
 
-	Window.Size = UDim2.fromOffset(w, h)
+		-- Never make it smaller than the UI content
+		w = math.max(w, 665)
+		h = math.max(h, 510)
 
-	Window.Position = UDim2.new(
-		0.5,
-		-w / 2,
-		0.5,
-		-h / 2
-	)
+		Window.Size = UDim2.fromOffset(w,h)
+
+		Window.Position = UDim2.new(
+			0.5,
+			-w/2,
+			0.5,
+			-h/2
+		)
+
+	-- PC / larger screen
+	else
+
+		local w = 680
+		local h = 520
+
+		Window.Size = UDim2.fromOffset(w,h)
+
+		Window.Position = UDim2.new(
+			0.5,
+			-w/2,
+			0.5,
+			-h/2
+		)
+	end
 end
 
 updateMobileWindow()
 
-workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(
-	updateMobileWindow
-)
+local camera = workspace.CurrentCamera
 
-Instance.new("UICorner",Window).CornerRadius = UDim.new(0,14)
-
-local outline = Instance.new("UIStroke")
-outline.Color = C.Stroke
-outline.Thickness = 2
-outline.Parent = Window
-RESPONSIVE SCALE
-
+if camera then
+	camera:GetPropertyChangedSignal("ViewportSize"):Connect(
+		updateMobileWindow
+	)
+end
 --========================================================--
 -- TITLE
 --========================================================--
