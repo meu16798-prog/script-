@@ -71,14 +71,14 @@ local function updateMobileWindow()
 	local screenH = viewport.Y
 
 	-- Mobile
-	if screenW <= 200 then
+	if screenW <= 700 then
 
-		local w = math.min(screenW - 20, 350)
-		local h = math.min(screenH - 30, 330)
+		local w = math.min(screenW - 20, 680)
+		local h = math.min(screenH - 30, 520)
 
 		-- Never make it smaller than the UI content
-		w = math.max(w, 445)
-		h = math.max(h, 300)
+		w = math.max(w, 665)
+		h = math.max(h, 510)
 
 		Window.Size = UDim2.fromOffset(w,h)
 
@@ -95,13 +95,13 @@ local function updateMobileWindow()
 		local w = 680
 		local h = 520
 
-		Window.Size = UDim2.fromOffset(w,h)
+		Window.Size = UDim2.fromOffset(430,320)
 
 		Window.Position = UDim2.new(
 			0.5,
-			-w/2,
+			-215,
 			0.5,
-			-h/2
+			-160
 		)
 	end
 end
