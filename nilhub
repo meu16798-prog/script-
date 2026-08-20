@@ -46,7 +46,7 @@ Gui.Parent = PlayerGui
 
 local Window = Instance.new("Frame")
 Window.Name = "Window"
-Window.Size = UDim2.fromOffset(790,570)
+Window.Size = UDim2.fromOffset(700,500)
 Window.Position = UDim2.new(0.5,-395,0.5,-285)
 Window.BackgroundColor3 = C.Background
 Window.BorderSizePixel = 0
@@ -61,6 +61,29 @@ windowStroke.Color = C.Stroke
 windowStroke.Thickness = 2
 windowStroke.Parent = Window
 
+
+--// MOBILE SIZE
+local UIScale = Instance.new("UIScale")
+UIScale.Parent = Window
+
+local function updateMenuSize()
+	local camera = workspace.CurrentCamera
+	if not camera then return end
+
+	local viewport = camera.ViewportSize
+
+	if viewport.X < 700 then
+		UIScale.Scale = 0.62
+	elseif viewport.X < 1000 then
+		UIScale.Scale = 0.78
+	else
+		UIScale.Scale = 0.90
+	end
+end
+
+updateMenuSize()
+
+workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(updateMenuSize)
 --========================================================--
 -- TITLE
 --========================================================--
