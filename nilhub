@@ -1,0 +1,1067 @@
+--========================================================--
+--                    NIL HUB - LOCAL                     --
+--========================================================--
+-- Paste this entire script as a LocalScript
+-- StarterPlayer > StarterPlayerScripts
+--========================================================--
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
+local VirtualUser = game:GetService("VirtualUser")
+
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+
+-- Remove old GUI
+local old = PlayerGui:FindFirstChild("NILHub")
+if old then
+	old:Destroy()
+end
+
+--========================================================--
+-- COLORS
+--========================================================--
+
+local C = {
+	Background = Color3.fromRGB(72,125,174),
+	Panel = Color3.fromRGB(78,132,181),
+	Button = Color3.fromRGB(103,163,214),
+	Hover = Color3.fromRGB(126,185,230),
+	Dark = Color3.fromRGB(43,82,118),
+	Text = Color3.fromRGB(235,245,252),
+	Stroke = Color3.fromRGB(135,195,235),
+}
+
+--========================================================--
+-- GUI
+--========================================================--
+
+local Gui = Instance.new("ScreenGui")
+Gui.Name = "NILHub"
+Gui.ResetOnSpawn = false
+Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+Gui.Parent = PlayerGui
+
+local Window = Instance.new("Frame")
+Window.Name = "Window"
+Window.Size = UDim2.fromOffset(790,570)
+Window.Position = UDim2.new(0.5,-395,0.5,-285)
+Window.BackgroundColor3 = C.Background
+Window.BorderSizePixel = 0
+Window.Parent = Gui
+
+local windowCorner = Instance.new("UICorner")
+windowCorner.CornerRadius = UDim.new(0,14)
+windowCorner.Parent = Window
+
+local windowStroke = Instance.new("UIStroke")
+windowStroke.Color = C.Stroke
+windowStroke.Thickness = 2
+windowStroke.Parent = Window
+
+--========================================================--
+-- TITLE
+--========================================================--
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1,-30,0,45)
+Title.Position = UDim2.fromOffset(15,5)
+Title.BackgroundTransparency = 1
+Title.Text = "NILHub.exe"
+Title.TextColor3 = C.Text
+Title.TextSize = 25
+Title.Font = Enum.Font.Gotham
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Window
+
+--========================================================--
+-- DRAGGING
+--========================================================--
+
+local dragging = false
+local dragStart
+local startPos
+
+Title.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+		or input.UserInputType == Enum.UserInputType.Touch then
+
+		dragging = true
+		dragStart = input.Position
+		startPos = Window.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if not dragging then return end
+
+	if input.UserInputType == Enum.UserInputType.MouseMovement
+		or input.UserInputType == Enum.UserInputType.Touch then
+
+		local delta = input.Position - dragStart
+
+		Window.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
+end)
+
+--========================================================--
+-- TAB BAR
+--========================================================--
+
+local TabBar = Instance.new("Frame")
+TabBar.Size = UDim2.new(1,-30,0,45)
+TabBar.Position = UDim2.fromOffset(15,52)
+TabBar.BackgroundTransparency = 1
+TabBar.Parent = Window
+
+local tabLayout = Instance.new("UIListLayout")
+tabLayout.FillDirection = Enum.FillDirection.Horizontal
+tabLayout.Padding = UDim.new(0,8)
+tabLayout.Parent = TabBar
+
+--========================================================--
+-- CONTENT
+--========================================================--
+
+local Content = Instance.new("Frame")
+Content.Size = UDim2.new(1,-30,1,-112)
+Content.Position = UDim2.fromOffset(15,107)
+Content.BackgroundColor3 = C.Panel
+Content.BorderSizePixel = 0
+Content.Parent = Window
+
+local contentCorner = Instance.new("UICorner")
+contentCorner.CornerRadius = UDim.new(0,12)
+contentCorner.Parent = Content
+
+local Pages = {}
+
+local function createPage(name)
+	local page = Instance.new("Frame")
+	page.Name = name
+	page.Size = UDim2.fromScale(1,1)
+	page.BackgroundTransparency = 1
+	page.Visible = false
+	page.Parent = Content
+
+	Pages[name] = page
+
+	return page
+end
+
+--========================================================--
+-- HELPERS
+--========================================================--
+
+local function createSection(parent,name,x,y,w,h)
+	local frame = Instance.new("Frame")
+	frame.Size = UDim2.fromOffset(w,h)
+	frame.Position = UDim2.fromOffset(x,y)
+	frame.BackgroundColor3 = Color3.fromRGB(75,126,172)
+	frame.BorderSizePixel = 0
+	frame.Parent = parent
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0,10)
+	corner.Parent = frame
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1,-20,0,30)
+	label.Position = UDim2.fromOffset(10,5)
+	label.BackgroundTransparency = 1
+	label.Text = name
+	label.TextColor3 = C.Text
+	label.TextSize = 19
+	label.Font = Enum.Font.Gotham
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.Parent = frame
+
+	return frame
+end
+
+local function createButton(parent,text,x,y,w,h)
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.fromOffset(w,h)
+	button.Position = UDim2.fromOffset(x,y)
+	button.BackgroundColor3 = C.Button
+	button.BorderSizePixel = 0
+	button.Text = text
+	button.TextColor3 = C.Text
+	button.TextSize = 15
+	button.Font = Enum.Font.Gotham
+	button.AutoButtonColor = false
+	button.Parent = parent
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0,7)
+	corner.Parent = button
+
+	button.MouseEnter:Connect(function()
+		button.BackgroundColor3 = C.Hover
+	end)
+
+	button.MouseLeave:Connect(function()
+		button.BackgroundColor3 = C.Button
+	end)
+
+	return button
+end
+
+local function createToggle(parent,text,x,y,w)
+	local button = createButton(parent,text,x,y,w,34)
+	local enabled = false
+
+	button.MouseButton1Click:Connect(function()
+		enabled = not enabled
+
+		if enabled then
+			button.Text = text.." [ON]"
+			button.BackgroundColor3 = C.Dark
+		else
+			button.Text = text
+			button.BackgroundColor3 = C.Button
+		end
+	end)
+
+	return button
+end
+
+--========================================================--
+-- HOME
+--========================================================--
+
+local Home = createPage("Home")
+
+local welcomeBox = createSection(
+	Home,
+	"Welcome",
+	20,20,730,340
+)
+
+local welcome = Instance.new("TextLabel")
+welcome.Size = UDim2.new(1,-30,0,150)
+welcome.Position = UDim2.fromOffset(15,55)
+welcome.BackgroundTransparency = 1
+welcome.Text = "NIL HUB IS BACK!\n\nCreated by Zayn"
+welcome.TextColor3 = C.Text
+welcome.TextSize = 29
+welcome.Font = Enum.Font.GothamBold
+welcome.TextWrapped = true
+welcome.Parent = welcomeBox
+
+local welcomeSub = Instance.new("TextLabel")
+welcomeSub.Size = UDim2.new(1,-30,0,70)
+welcomeSub.Position = UDim2.fromOffset(15,215)
+welcomeSub.BackgroundTransparency = 1
+welcomeSub.Text = "Welcome to the new NIL Hub experience ✦"
+welcomeSub.TextColor3 = C.Text
+welcomeSub.TextSize = 17
+welcomeSub.Font = Enum.Font.Gotham
+welcomeSub.TextWrapped = true
+welcomeSub.Parent = welcomeBox
+
+--========================================================--
+-- MAIN
+--========================================================--
+
+local Main = createPage("Main")
+
+-- LEFT SIDE
+local MainLeft = createSection(
+	Main,
+	"Main",
+	15,15,350,510
+)
+
+local leftButtons = {
+	"Touch Fling",
+	"Fake Lag",
+	"Fling All",
+	"Raid All",
+	"Fling Aura",
+	"Anti Fling",
+	"Anti Bang / Head"
+}
+
+for i,name in ipairs(leftButtons) do
+	createToggle(
+		MainLeft,
+		name,
+		12,
+		43 + ((i-1)*39),
+		326
+	)
+end
+
+local animationTitle = Instance.new("TextLabel")
+animationTitle.Size = UDim2.new(1,-20,0,28)
+animationTitle.Position = UDim2.fromOffset(10,320)
+animationTitle.BackgroundTransparency = 1
+animationTitle.Text = "Animation"
+animationTitle.TextColor3 = C.Text
+animationTitle.TextSize = 18
+animationTitle.Font = Enum.Font.Gotham
+animationTitle.TextXAlignment = Enum.TextXAlignment.Left
+animationTitle.Parent = MainLeft
+
+--========================================================--
+-- ANIMATIONS
+--========================================================--
+
+local animationNames = {
+	"Wave",
+	"Point",
+	"Cheer",
+	"Laugh",
+	"Jerk"
+}
+
+local animationMap = {
+	Wave = "wave",
+	Point = "point",
+	Cheer = "cheer",
+	Laugh = "laugh",
+	Jerk = "dance"
+}
+
+local currentTrack
+
+local function playAnimation(name)
+	local character = Player.Character
+	if not character then return end
+
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid then return end
+
+	if currentTrack then
+		pcall(function()
+			currentTrack:Stop()
+			currentTrack:Destroy()
+		end)
+
+		currentTrack = nil
+	end
+
+	local emoteName = animationMap[name]
+
+	if emoteName then
+		local success = pcall(function()
+			humanoid:PlayEmote(emoteName)
+		end)
+
+		if not success then
+			print("Animation unavailable:", name)
+		end
+	end
+end
+
+for i,name in ipairs(animationNames) do
+	local button = createButton(
+		MainLeft,
+		name,
+		12,
+		350 + ((i-1)*30),
+		326,
+		27
+	)
+
+	button.MouseButton1Click:Connect(function()
+		playAnimation(name)
+	end)
+end
+
+--========================================================--
+-- RIGHT SIDE TARGET
+--========================================================--
+
+local TargetPanel = createSection(
+	Main,
+	"Target",
+	375,15,350,510
+)
+
+local targetBox = Instance.new("TextBox")
+targetBox.Size = UDim2.fromOffset(326,35)
+targetBox.Position = UDim2.fromOffset(12,42)
+targetBox.BackgroundColor3 = C.Dark
+targetBox.BorderSizePixel = 0
+targetBox.PlaceholderText = "Display Username"
+targetBox.PlaceholderColor3 = Color3.fromRGB(190,210,225)
+targetBox.Text = ""
+targetBox.TextColor3 = C.Text
+targetBox.TextSize = 15
+targetBox.Font = Enum.Font.Gotham
+targetBox.ClearTextOnFocus = false
+targetBox.Parent = TargetPanel
+
+local targetCorner = Instance.new("UICorner")
+targetCorner.CornerRadius = UDim.new(0,7)
+targetCorner.Parent = targetBox
+
+local randomButton = createButton(
+	TargetPanel,
+	"Random",
+	12,84,326,34
+)
+
+local clickTargetButton = createButton(
+	TargetPanel,
+	"Click Target",
+	12,123,326,34
+)
+
+local targetUtility = Instance.new("TextLabel")
+targetUtility.Size = UDim2.new(1,-20,0,28)
+targetUtility.Position = UDim2.fromOffset(10,168)
+targetUtility.BackgroundTransparency = 1
+targetUtility.Text = "Target Utility"
+targetUtility.TextColor3 = C.Text
+targetUtility.TextSize = 18
+targetUtility.Font = Enum.Font.Gotham
+targetUtility.TextXAlignment = Enum.TextXAlignment.Left
+targetUtility.Parent = TargetPanel
+
+local function findPlayer(text)
+	if not text or text == "" then
+		return nil
+	end
+
+	text = string.lower(text)
+
+	for _,p in ipairs(Players:GetPlayers()) do
+		if string.lower(p.Name) == text
+			or string.lower(p.DisplayName) == text then
+			return p
+		end
+	end
+
+	return nil
+end
+
+randomButton.MouseButton1Click:Connect(function()
+	local available = {}
+
+	for _,p in ipairs(Players:GetPlayers()) do
+		if p ~= Player then
+			table.insert(available,p)
+		end
+	end
+
+	if #available > 0 then
+		local chosen = available[math.random(1,#available)]
+		targetBox.Text = chosen.DisplayName
+	end
+end)
+
+clickTargetButton.MouseButton1Click:Connect(function()
+	local target = findPlayer(targetBox.Text)
+
+	if target then
+		targetBox.Text = target.DisplayName
+	end
+end)
+
+--========================================================--
+-- VIEW / UNVIEW
+--========================================================--
+
+local oldCameraSubject
+
+local function viewTarget()
+	local target = findPlayer(targetBox.Text)
+
+	if not target or not target.Character then
+		return
+	end
+
+	local hum = target.Character:FindFirstChildOfClass("Humanoid")
+
+	if hum then
+		local camera = workspace.CurrentCamera
+
+		oldCameraSubject = camera.CameraSubject
+		camera.CameraSubject = hum
+	end
+end
+
+local function unview()
+	local camera = workspace.CurrentCamera
+
+	if oldCameraSubject then
+		camera.CameraSubject = oldCameraSubject
+		oldCameraSubject = nil
+	elseif Player.Character then
+		local hum = Player.Character:FindFirstChildOfClass("Humanoid")
+
+		if hum then
+			camera.CameraSubject = hum
+		end
+	end
+end
+
+local viewButton = createButton(
+	TargetPanel,
+	"View / Unview",
+	12,200,326,34
+)
+
+viewButton.MouseButton1Click:Connect(function()
+	if oldCameraSubject then
+		unview()
+		viewButton.Text = "View / Unview"
+	else
+		viewTarget()
+	end
+end)
+
+--========================================================--
+-- TARGET UTILITY UI
+--========================================================--
+
+local targetUtilities = {
+	"Teleport",
+	"Steal Animation",
+	"Fling",
+	"HeadSit",
+	"FaceSit",
+	"Loop Fling",
+	"Bang",
+	"Face Bang",
+	"Inverse Bang",
+	"Inverse Bang 2"
+}
+
+for i,name in ipairs(targetUtilities) do
+	local y = 239 + ((i-1)*27)
+
+	local button = createButton(
+		TargetPanel,
+		name,
+		12,
+		y,
+		326,
+		25
+	)
+
+	-- Safe local implementation for Teleport
+	if name == "Teleport" then
+		button.MouseButton1Click:Connect(function()
+			local target = findPlayer(targetBox.Text)
+
+			if target and target.Character and Player.Character then
+				local targetRoot =
+					target.Character:FindFirstChild("HumanoidRootPart")
+
+				local myRoot =
+					Player.Character:FindFirstChild("HumanoidRootPart")
+
+				if targetRoot and myRoot then
+					myRoot.CFrame =
+						targetRoot.CFrame * CFrame.new(3,0,0)
+				end
+			end
+		end)
+	end
+
+	-- Steal Animation: play a matching animation if available
+	if name == "Steal Animation" then
+		button.MouseButton1Click:Connect(function()
+			local target = findPlayer(targetBox.Text)
+
+			if not target or not target.Character then
+				return
+			end
+
+			local targetHum =
+				target.Character:FindFirstChildOfClass("Humanoid")
+
+			if targetHum then
+				-- Roblox does not expose another player's
+				-- currently playing animation as a guaranteed
+				-- reusable animation asset through a LocalScript.
+				print("Target animation requested:",target.Name)
+			end
+		end)
+	end
+
+	-- The remaining target-action buttons stay UI-only.
+	-- They do not execute exploit behavior against other players.
+end
+
+--========================================================--
+-- MISC
+--========================================================--
+
+local Misc = createPage("Misc")
+
+local MiscPanel = createSection(
+	Misc,
+	"Other",
+	15,15,730,510
+)
+
+-- WalkSpeed
+local speedBox = Instance.new("TextBox")
+speedBox.Size = UDim2.fromOffset(325,37)
+speedBox.Position = UDim2.fromOffset(12,45)
+speedBox.BackgroundColor3 = C.Dark
+speedBox.BorderSizePixel = 0
+speedBox.PlaceholderText = "Walk Speed (default 16)"
+speedBox.PlaceholderColor3 = Color3.fromRGB(190,210,225)
+speedBox.Text = ""
+speedBox.TextColor3 = C.Text
+speedBox.TextSize = 15
+speedBox.Font = Enum.Font.Gotham
+speedBox.ClearTextOnFocus = false
+speedBox.Parent = MiscPanel
+
+Instance.new("UICorner",speedBox).CornerRadius = UDim.new(0,7)
+
+local speedButton = createButton(
+	MiscPanel,
+	"Set Walk Speed",
+	350,45,325,37
+)
+
+speedButton.MouseButton1Click:Connect(function()
+	local value = tonumber(speedBox.Text) or 16
+
+	local character = Player.Character
+	local hum = character and character:FindFirstChildOfClass("Humanoid")
+
+	if hum then
+		hum.WalkSpeed = math.clamp(value,0,100)
+	end
+end)
+
+-- JumpPower
+local jumpBox = Instance.new("TextBox")
+jumpBox.Size = UDim2.fromOffset(325,37)
+jumpBox.Position = UDim2.fromOffset(12,90)
+jumpBox.BackgroundColor3 = C.Dark
+jumpBox.BorderSizePixel = 0
+jumpBox.PlaceholderText = "Jump Power (default 50)"
+jumpBox.PlaceholderColor3 = Color3.fromRGB(190,210,225)
+jumpBox.Text = ""
+jumpBox.TextColor3 = C.Text
+jumpBox.TextSize = 15
+jumpBox.Font = Enum.Font.Gotham
+jumpBox.ClearTextOnFocus = false
+jumpBox.Parent = MiscPanel
+
+Instance.new("UICorner",jumpBox).CornerRadius = UDim.new(0,7)
+
+local jumpButton = createButton(
+	MiscPanel,
+	"Set Jump Power",
+	350,90,325,37
+)
+
+jumpButton.MouseButton1Click:Connect(function()
+	local value = tonumber(jumpBox.Text) or 50
+
+	local character = Player.Character
+	local hum = character and character:FindFirstChildOfClass("Humanoid")
+
+	if hum then
+		hum.UseJumpPower = true
+		hum.JumpPower = math.clamp(value,0,150)
+	end
+end)
+
+-- Reset
+local resetButton = createButton(
+	MiscPanel,
+	"Reset",
+	12,135,325,37
+)
+
+resetButton.MouseButton1Click:Connect(function()
+	local character = Player.Character
+	local hum = character and character:FindFirstChildOfClass("Humanoid")
+
+	if hum then
+		hum.Health = 0
+	end
+end)
+
+--========================================================--
+-- FLY
+--========================================================--
+
+local flying = false
+local flyConnection
+local flySpeed = 55
+
+local function getRoot()
+	local character = Player.Character
+	return character and character:FindFirstChild("HumanoidRootPart")
+end
+
+local function stopFly()
+	flying = false
+
+	if flyConnection then
+		flyConnection:Disconnect()
+		flyConnection = nil
+	end
+
+	local root = getRoot()
+
+	if root then
+		root.AssemblyLinearVelocity = Vector3.zero
+	end
+end
+
+local function startFly()
+	if flying then
+		stopFly()
+		return
+	end
+
+	flying = true
+
+	flyConnection = RunService.RenderStepped:Connect(function()
+		if not flying then return end
+
+		local root = getRoot()
+
+		if not root then
+			stopFly()
+			return
+		end
+
+		local camera = workspace.CurrentCamera
+		local direction = Vector3.zero
+
+		if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+			direction += camera.CFrame.LookVector
+		end
+
+		if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+			direction -= camera.CFrame.LookVector
+		end
+
+		if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+			direction -= camera.CFrame.RightVector
+		end
+
+		if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+			direction += camera.CFrame.RightVector
+		end
+
+		if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+			direction += Vector3.yAxis
+		end
+
+		if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+			direction -= Vector3.yAxis
+		end
+
+		if direction.Magnitude > 0 then
+			direction = direction.Unit
+			root.AssemblyLinearVelocity = direction * flySpeed
+		else
+			root.AssemblyLinearVelocity = Vector3.zero
+		end
+	end)
+end
+
+local flyXButton = createToggle(
+	MiscPanel,
+	"Fly X",
+	350,135,325
+)
+
+flyXButton.MouseButton1Click:Connect(function()
+	startFly()
+end)
+
+local flyMobileButton = createToggle(
+	MiscPanel,
+	"Fly Mobile",
+	12,180,325
+)
+
+flyMobileButton.MouseButton1Click:Connect(function()
+	startFly()
+end)
+
+--========================================================--
+-- ANTI AFK
+--========================================================--
+
+local antiAFK = false
+
+local antiAFKButton = createToggle(
+	MiscPanel,
+	"Anti AFK",
+	350,180,325
+)
+
+antiAFKButton.MouseButton1Click:Connect(function()
+	antiAFK = not antiAFK
+
+	if antiAFK then
+		antiAFKButton.Text = "Anti AFK [ON]"
+		antiAFKButton.BackgroundColor3 = C.Dark
+	else
+		antiAFKButton.Text = "Anti AFK"
+		antiAFKButton.BackgroundColor3 = C.Button
+	end
+end)
+
+Player.Idled:Connect(function()
+	if antiAFK then
+		pcall(function()
+			VirtualUser:CaptureController()
+			VirtualUser:ClickButton2(
+				Vector2.new(workspace.CurrentCamera.ViewportSize.X/2,
+				workspace.CurrentCamera.ViewportSize.Y/2)
+			)
+		end)
+	end
+end)
+
+--========================================================--
+-- REJOIN
+--========================================================--
+
+local rejoinButton = createButton(
+	MiscPanel,
+	"Rejoin",
+	12,225,325,37
+)
+
+rejoinButton.MouseButton1Click:Connect(function()
+	TeleportService:Teleport(game.PlaceId,Player)
+end)
+
+--========================================================--
+-- SERVER HOP
+--========================================================--
+-- Without a server-list API, a LocalScript cannot reliably
+-- choose a specific different JobId. Re-teleporting lets
+-- Roblox assign a server again.
+
+local serverHopButton = createButton(
+	MiscPanel,
+	"Server Hop",
+	350,225,325,37
+)
+
+serverHopButton.MouseButton1Click:Connect(function()
+	TeleportService:Teleport(game.PlaceId,Player)
+end)
+
+--========================================================--
+-- BOOST FPS
+--========================================================--
+
+local fpsButton = createToggle(
+	MiscPanel,
+	"Boost FPS",
+	12,270,325
+)
+
+local fpsEnabled = false
+
+fpsButton.MouseButton1Click:Connect(function()
+	fpsEnabled = not fpsEnabled
+
+	if fpsEnabled then
+		fpsButton.Text = "Boost FPS [ON]"
+		fpsButton.BackgroundColor3 = C.Dark
+
+		-- Client-side visual optimization
+		for _,obj in ipairs(workspace:GetDescendants()) do
+			if obj:IsA("ParticleEmitter")
+				or obj:IsA("Trail")
+				or obj:IsA("Beam") then
+
+				obj.Enabled = false
+			end
+		end
+	else
+		fpsButton.Text = "Boost FPS"
+		fpsButton.BackgroundColor3 = C.Button
+	end
+end)
+
+--========================================================--
+-- BOT MODE
+--========================================================--
+
+local botMode = createToggle(
+	MiscPanel,
+	"Bot Mode",
+	350,270,325
+)
+
+--========================================================--
+-- ALL EMOTE
+--========================================================--
+
+local emoteButton = createButton(
+	MiscPanel,
+	"All Emote",
+	12,315,325,37
+)
+
+local emotes = {
+	"wave",
+	"point",
+	"cheer",
+	"laugh",
+	"salute",
+	"dance"
+}
+
+local emoteIndex = 0
+
+emoteButton.MouseButton1Click:Connect(function()
+	local character = Player.Character
+	local hum = character and character:FindFirstChildOfClass("Humanoid")
+
+	if not hum then return end
+
+	emoteIndex += 1
+
+	if emoteIndex > #emotes then
+		emoteIndex = 1
+	end
+
+	pcall(function()
+		hum:PlayEmote(emotes[emoteIndex])
+	end)
+end)
+
+--========================================================--
+-- EXTRA UI BUTTONS
+--========================================================--
+
+local extraItems = {
+	"Click Fling",
+	"Walk Speed",
+	"Jump Power",
+	"Fly X",
+	"Fly Mobile"
+}
+
+-- Click Fling remains UI-only because it would require
+-- forcibly affecting another player's character.
+
+local clickFling = createButton(
+	MiscPanel,
+	"Click Fling",
+	350,315,325,37
+)
+
+clickFling.MouseButton1Click:Connect(function()
+	print("Click Fling is UI-only in this LocalScript.")
+end)
+
+--========================================================--
+-- TAB CREATION
+--========================================================--
+
+local function createTab(name)
+	local tab = Instance.new("TextButton")
+	tab.Size = UDim2.fromOffset(115,40)
+	tab.BackgroundColor3 = C.Dark
+	tab.BorderSizePixel = 0
+	tab.Text = name
+	tab.TextColor3 = C.Text
+	tab.TextSize = 17
+	tab.Font = Enum.Font.Gotham
+	tab.AutoButtonColor = false
+	tab.Parent = TabBar
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0,8)
+	corner.Parent = tab
+
+	tab.MouseEnter:Connect(function()
+		if not Pages[name].Visible then
+			tab.BackgroundColor3 = Color3.fromRGB(65,105,143)
+		end
+	end)
+
+	tab.MouseLeave:Connect(function()
+		if not Pages[name].Visible then
+			tab.BackgroundColor3 = C.Dark
+		end
+	end)
+
+	tab.MouseButton1Click:Connect(function()
+		for pageName,page in pairs(Pages) do
+			page.Visible = (pageName == name)
+		end
+
+		for _,obj in ipairs(TabBar:GetChildren()) do
+			if obj:IsA("TextButton") then
+				obj.BackgroundColor3 = C.Dark
+			end
+		end
+
+		tab.BackgroundColor3 = C.Button
+	end)
+
+	return tab
+end
+
+local homeTab = createTab("Home")
+local mainTab = createTab("Main")
+local miscTab = createTab("Misc")
+
+Home.Visible = true
+homeTab.BackgroundColor3 = C.Button
+
+--========================================================--
+-- MOBILE OPEN/CLOSE
+--========================================================--
+
+local openButton = Instance.new("TextButton")
+openButton.Size = UDim2.fromOffset(110,42)
+openButton.Position = UDim2.new(0,15,0.5,-21)
+openButton.BackgroundColor3 = C.Background
+openButton.BorderSizePixel = 0
+openButton.Text = "NIL Hub"
+openButton.TextColor3 = C.Text
+openButton.TextSize = 17
+openButton.Font = Enum.Font.Gotham
+openButton.Visible = false
+openButton.Parent = Gui
+
+Instance.new("UICorner",openButton).CornerRadius = UDim.new(0,9)
+
+openButton.MouseButton1Click:Connect(function()
+	Window.Visible = true
+	openButton.Visible = false
+end)
+
+-- Right-click / close shortcut
+UserInputService.InputBegan:Connect(function(input,processed)
+	if processed then return end
+
+	if input.KeyCode == Enum.KeyCode.RightShift then
+		Window.Visible = not Window.Visible
+		openButton.Visible = not Window.Visible
+	end
+end)
+
+print("NIL Hub loaded successfully.")
+print("Press RightShift to hide/show the UI.")
