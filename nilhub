@@ -45,7 +45,8 @@ local Window = Instance.new("Frame")
 Window.Name = "NILHubWindow"
 
 -- Default compact size
-Window.Size = UDim2.fromOffset(680,520)
+Window.Size = UDim2.fromOffset(430,320)
+Window.Position = UDim2.new(0.5,-235,0.5,-170)
 
 Window.BackgroundColor3 = C.Background
 Window.BorderSizePixel = 0
@@ -95,13 +96,13 @@ local function updateMobileWindow()
 		local w = 680
 		local h = 520
 
-		Window.Size = UDim2.fromOffset(430,320)
+		Window.Size = UDim2.fromOffset(w,h)
 
 		Window.Position = UDim2.new(
 			0.5,
-			-215,
+			-w/2,
 			0.5,
-			-160
+			-h/2
 		)
 	end
 end
