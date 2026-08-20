@@ -43,7 +43,7 @@ Gui.Parent = PlayerGui
 
 local Window = Instance.new("Frame")
 Window.Name = "NILHubWindow"
-Window.Size = UDim2.fromOffset(700,560)
+Window.Size = UDim2.fromOffset(500,360)
 Window.Position = UDim2.new(.5,-350,.5,-280)
 Window.BackgroundColor3 = C.Background
 Window.BorderSizePixel = 0
